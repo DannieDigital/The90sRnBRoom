@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The 90s RnB Room</title>
+<style>
+    body { font-family: 'Trebuchet MS', Arial, sans-serif; margin-top: 2rem; padding: 0; color: #333; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 1rem; }
+    h1 { margin-top: 0; text-align: center; background-color: rgba(0,0,0,0.4); color: #fff; padding-top: 2rem; padding-bottom: 2rem; font-size: 50px;}
+    header {position: relative; color: white; text-align: center; padding: 2rem 0rem 0.5rem 0rem; background: url(rnbcover.svg) center/cover no-repeat;}
+    header::before { content: ""; position: absolute; inset: 0; background: rgba(0,0,0,0.4); /* dark overlay */}
+    header h1 {position: relative; /* keep text above overlay */}
+    .filters { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; margin-top: 1rem; }
+    .filters input, .filters select { padding: 0.5rem; font-size: 1rem; flex: 1; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 0.5rem; border-bottom: 1px solid #ccc; text-align: left; }
+    th { background: #070707; color: #fff; position: sticky; top: 0; z-index: 2; }
+    th.links-header { text-align: center; }
+    tr:hover { background: #f1f1f1; }
+    .links { text-align: center; }
+    .links a { margin: 0 0.25rem; display: inline-block; vertical-align: middle; }
+    .links svg { width: 20px; height: 20px; }
+    .table-container { max-height: 600px; overflow-y: auto; border: 1px solid #fff;}
+    @media (max-width: 600px) {
+        table, thead, tbody, th, td, tr { display: block; }
+        th { position: static; }
+        td { border: none; padding: 0.5rem 0; }
+        td::before { font-weight: bold; display: block; margin-bottom: 0.25rem; }
+        td:nth-of-type(1)::before { content: "Year"; }
+        td:nth-of-type(2)::before { content: "Artist"; }
+        td:nth-of-type(3)::before { content: "Album"; }
+        td:nth-of-type(4)::before { content: "Links"; }
+        .links, th.links-header { text-align: left; }
+        .table-container { max-height: none; overflow-y: visible; border: none; }
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <header><h1>The 90s RnB Room</h1></header>
+    
+
+    <div class="filters">
+        <input type="text" id="search" placeholder="Search artist or album..." />
+        <select id="yearFilter">
+            <option value="">All Years</option>
+        </select>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Year</th>
+                    <th>Artist</th>
+                    <th>Album</th>
+                    <th class="links-header">Links</th>
+                </tr>
+            </thead>
+            <tbody id="albumTable"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+// Full dataset — 1990 to 1999
+const albums = [
+    {year:1990, artist:"After 7", album:"After 7"},
+    {year:1990, artist:"Al B. Sure!", album:"Private Times... and the Whole 9!"},
+    {year:1990, artist:"Bell Biv DeVoe", album:"Poison"},
+    {year:1990, artist:"En Vogue", album:"Born to Sing"},
+    {year:1990, artist:"Troop", album:"Attitude"},
+    {year:1990, artist:"Johnny Gill", album:"Johnny Gill"},
+    {year:1990, artist:"LeVert", album:"Rope a Dope Style"},
+    {year:1990, artist:"Surface", album:"3 Deep"},
+    {year:1991, artist:"Boyz II Men", album:"Cooleyhighharmony"},
+    {year:1991, artist:"Hi-Five", album:"Hi-Five"},
+    {year:1991, artist:"Jodeci", album:"Forever My Lady"},
+    {year:1991, artist:"Shanice", album:"Inner Child"},
+    {year:1991, artist:"Mariah Carey", album:"Emotions"},
+    {year:1991, artist:"Color Me Badd", album:"C.M.B."},
+    {year:1991, artist:"Keith Washington", album:"Make Time for Love"},
+    {year:1991, artist:"Vanessa Williams", album:"The Comfort Zone"},
+    {year:1992, artist:"Mary J. Blige", album:"What's the 411?"},
+    {year:1992, artist:"SWV", album:"It's About Time"},
+    {year:1992, artist:"TLC", album:"Ooooooohhh... On the TLC Tip"},
+    {year:1992, artist:"Xscape", album:"Hummin' Comin' at 'Cha"},
+    {year:1992, artist:"Aaron Hall", album:"The Truth"},
+    {year:1992, artist:"Shai", album:"...If I Ever Fall in Love"},
+    {year:1992, artist:"Chaka Khan", album:"The Woman I Am"},
+    {year:1992, artist:"Vanessa Williams", album:"The Sweetest Days"},
+    {year:1993, artist:"Toni Braxton", album:"Toni Braxton"},
+    {year:1993, artist:"Janet Jackson", album:"janet."},
+    {year:1993, artist:"Tevin Campbell", album:"I'm Ready"},
+    {year:1993, artist:"Intro", album:"Intro"},
+    {year:1993, artist:"Jade", album:"Jade to the Max"},
+    {year:1993, artist:"H-Town", album:"Fever for Da Flavor"},
+    {year:1993, artist:"Silk", album:"Lose Control"},
+    {year:1993, artist:"Portrait", album:"Portrait"},
+    {year:1993, artist:"Usher", album:"Usher"},
+    {year:1994, artist:"Aaliyah", album:"Age Ain't Nothing but a Number"},
+    {year:1994, artist:"Brandy", album:"Brandy"},
+    {year:1994, artist:"Changing Faces", album:"Changing Faces"},
+    {year:1994, artist:"R. Kelly", album:"12 Play"},
+    {year:1994, artist:"TLC", album:"CrazySexyCool"},
+    {year:1994, artist:"Blackstreet", album:"Blackstreet"},
+    {year:1994, artist:"Immature", album:"Playtyme Is Over"},
+    {year:1994, artist:"Jodeci", album:"Diary of a Mad Band"},
+    {year:1995, artist:"D'Angelo", album:"Brown Sugar"},
+    {year:1995, artist:"Faith Evans", album:"Faith"},
+    {year:1995, artist:"Monica", album:"Miss Thang"},
+    {year:1995, artist:"Mariah Carey", album:"Daydream"},
+    {year:1995, artist:"Total", album:"Total"},
+    {year:1995, artist:"Xscape", album:"Off the Hook"},
+    {year:1995, artist:"Montell Jordan", album:"This Is How We Do It"},
+    {year:1995, artist:"Adina Howard", album:"Do You Wanna Ride?"},
+    {year:1996, artist:"112", album:"112"},
+    {year:1996, artist:"Maxwell", album:"Maxwell's Urban Hang Suite"},
+    {year:1996, artist:"Toni Braxton", album:"Secrets"},
+    {year:1996, artist:"Keith Sweat", album:"Keith Sweat"},
+    {year:1996, artist:"Ginuwine", album:"Ginuwine... the Bachelor"},
+    {year:1996, artist:"Aaliyah", album:"One in a Million"},
+    {year:1996, artist:"Blackstreet", album:"Another Level"},
+    {year:1997, artist:"Erykah Badu", album:"Baduizm"},
+    {year:1997, artist:"Usher", album:"My Way"},
+    {year:1997, artist:"Dru Hill", album:"Dru Hill"},
+    {year:1997, artist:"Janet Jackson", album:"The Velvet Rope"},
+    {year:1997, artist:"Mary J. Blige", album:"Share My World"},
+    {year:1997, artist:"Puff Daddy & the Family", album:"No Way Out"},
+    {year:1997, artist:"Joe", album:"All That I Am"},
+    {year:1997, artist:"Changing Faces", album:"All Day, All Night"},
+    {year:1998, artist:"Brandy", album:"Never Say Never"},
+    {year:1998, artist:"Destiny's Child", album:"Destiny's Child"},
+    {year:1998, artist:"Lauryn Hill", album:"The Miseducation of Lauryn Hill"},
+    {year:1998, artist:"Monica", album:"The Boy Is Mine"},
+    {year:1998, artist:"Whitney Houston", album:"My Love Is Your Love"},
+    {year:1998, artist:"Dru Hill", album:"Enter the Dru"},
+    {year:1998, artist:"Faith Evans", album:"Keep the Faith"},
+    {year:1998, artist:"K-Ci & JoJo", album:"Love Always"},
+    {year:1999, artist:"Avant", album:"My Thoughts"},
+    {year:1999, artist:"Blaque", album:"Blaque"},
+    {year:1999, artist:"Brian McKnight", album:"Back at One"},
+    {year:1999, artist:"Destiny's Child", album:"The Writing’s on the Wall"},
+    {year:1999, artist:"Donell Jones", album:"Where I Wanna Be"},
+    {year:1999, artist:"TLC", album:"FanMail"},
+    {year:1999, artist:"Tyrese", album:"Tyrese"},
+    {year:1999, artist:"Ginuwine", album:"100% Ginuwine"}
+];
+
+// Populate year filter
+const yearFilter = document.getElementById('yearFilter');
+[...new Set(albums.map(a => a.year))].sort().forEach(y => {
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y;
+    yearFilter.appendChild(opt);
+});
+
+// Icons
+function appleIcon() {
+    return `<svg xmlns="http://www.w3.org/2000/svg" fill="black" viewBox="0 0 24 24"><path d="M16.365 1.43c0 1.14-.466 2.24-1.29 3.09-.83.86-2.02 1.53-3.23 1.44-.12-1.17.49-2.35 1.29-3.18.84-.87 2.25-1.54 3.23-1.35zm4.74 16.54c-.63 1.48-1.39 2.94-2.49 4.2-1.03 1.19-2.27 2.37-3.77 2.39-1.48.02-1.96-.78-3.64-.78s-2.2.76-3.64.8c-1.52.03-2.68-1.27-3.71-2.45-1.74-1.99-3.06-5.03-3.09-8.05-.03-2.36.66-4.69 2.02-6.55 1.35-1.86 3.18-3.14 5.07-3.17 1.49-.03 2.92 1.01 3.64 1.01.72 0 2.51-1.24 4.23-1.06.72.03 2.73.29 4.02 2.18-.1.06-2.4 1.4-2.38 4.19.02 3.35 2.92 4.46 2.94 4.47z"/></svg>`;
+}
+function spotifyIcon() {
+    return `<svg xmlns="http://www.w3.org/2000/svg" fill="#1DB954" viewBox="0 0 24 24"><path d="M12 0C5.371 0 0 5.371 0 12c0 6.626 5.371 12 12 12s12-5.374 12-12C24 5.371 18.629 0 12 0zm5.528 17.354a.748.748 0 0 1-1.027.248c-2.811-1.729-6.354-2.123-10.544-1.168a.75.75 0 1 1-.332-1.465c4.563-1.037 8.537-.584 11.682 1.342a.75.75 0 0 1 .221 1.043zm1.467-3.234a.937.937 0 0 1-1.287.31c-3.219-1.963-8.13-2.534-11.938-1.394a.937.937 0 1 1-.554-1.794c4.318-1.333 9.728-.697 13.395 1.598a.937.937 0 0 1 .384 1.28zm.126-3.365c-3.664-2.19-9.729-2.39-13.26-1.313a1.125 1.125 0 1 1-.665-2.15c4.15-1.283 10.902-1.047 15.106 1.478a1.125 1.125 0 0 1-1.181 1.985z"/></svg>`;
+}
+function youtubeIcon() {
+    return `<svg xmlns="http://www.w3.org/2000/svg" fill="#FF0000" viewBox="0 0 24 24"><path d="M23.498 6.186a2.978 2.978 0 0 0-2.097-2.103C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.401.583a2.978 2.978 0 0 0-2.097 2.103C0 8.09 0 12 0 12s0 3.91.502 5.814a2.978 2.978 0 0 0 2.097 2.103C4.495 20.5 12 20.5 12 20.5s7.505 0 9.401-.583a2.978 2.978 0 0 0 2.097-2.103C24 15.91 24 12 24 12s0-3.91-.502-5.814ZM9.75 15.5v-7l6 3.5-6 3.5Z"/></svg>`;
+}
+
+function renderTable() {
+    const search = document.getElementById('search').value.toLowerCase();
+    const yearVal = yearFilter.value;
+
+    const filtered = albums.filter(a => {
+        const matchSearch = a.artist.toLowerCase().includes(search) ||
+                            a.album.toLowerCase().includes(search);
+        const matchYear = yearVal ? a.year == yearVal : true;
+        return matchSearch && matchYear;
+    });
+
+    const tbody = document.getElementById('albumTable');
+    tbody.innerHTML = '';
+    filtered.forEach(a => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${a.year}</td>
+            <td>${a.artist}</td>
+            <td>${a.album}</td>
+            <td class="links">
+                <a href="https://music.apple.com/search?term=${encodeURIComponent(a.artist + ' ' + a.album)}" target="_blank" title="Apple Music">${appleIcon()}</a>
+                <a href="https://open.spotify.com/search/${encodeURIComponent(a.artist + ' ' + a.album)}" target="_blank" title="Spotify">${spotifyIcon()}</a>
+                <a href="https://www.youtube.com/results?search_query=${encodeURIComponent(a.artist + ' ' + a.album)}" target="_blank" title="YouTube">${youtubeIcon()}</a>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+document.getElementById('search').addEventListener('input', renderTable);
+yearFilter.addEventListener('change', renderTable);
+
+renderTable();
+</script>
+</body>
+</html>
